@@ -14,12 +14,12 @@ public class LoadDatabase {
     private static final Logger log = LoggerFactory.getLogger(LoadDatabase.class);
 
     @Bean
-    CommandLineRunner initDatabase(UserRepository repository) {
+    CommandLineRunner initDatabase(AccountRepository repository) {
         return args -> {
-            log.info("Preloading: " + repository.save(new User("ignorantalpaca@gmail.com",
-                    Hashing.sha256().hashString("password", StandardCharsets.UTF_8).toString())));
-            log.info("Preloading: " + repository.save(new User("ignorantalpaca@gmail.com",
-                    Hashing.sha256().hashString("password", StandardCharsets.UTF_8).toString())));
+            log.info("Preloading: " + repository.save(new Account("testemail1@gmail.com",
+                    new Hasher().hash("password"))));
+            log.info("Preloading: " + repository.save(new Account("testemail2@gmail.com",
+                    new Hasher().hash("password"))));
         };
     }
 }
