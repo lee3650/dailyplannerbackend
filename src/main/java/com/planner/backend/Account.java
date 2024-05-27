@@ -1,18 +1,21 @@
 package com.planner.backend;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 
+import java.util.List;
 import java.util.Objects;
 
 @Entity
 public class Account {
     private @Id @GeneratedValue Long id;
+
     @Column(unique = true)
     private String email;
+
     private String passwordHash;
+
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Template> templates;
 
     Account() {
 

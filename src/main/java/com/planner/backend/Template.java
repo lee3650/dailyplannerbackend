@@ -2,11 +2,24 @@ package com.planner.backend;
 
 import jakarta.persistence.*;
 
+import java.util.List;
+
 @Entity
 public class Template {
     private @Id
     @GeneratedValue
     Long id;
+
+    public List<EventData> getEvents() {
+        return events;
+    }
+
+    public void setEvents(List<EventData> events) {
+        this.events = events;
+    }
+
+    @OneToMany(mappedBy = "template", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<EventData> events;
 
     @ManyToOne
     @JoinColumn(name = "account_id", nullable = false)
@@ -36,5 +49,15 @@ public class Template {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    @Override
+    public String toString() {
+        return "Template{" +
+                "id=" + id +
+                ", events=" + events +
+                ", owner=" + owner +
+                ", name='" + name + '\'' +
+                '}';
     }
 }
