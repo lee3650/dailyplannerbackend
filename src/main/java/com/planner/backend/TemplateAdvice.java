@@ -6,17 +6,17 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 @RestControllerAdvice
-public class LoginAdvice {
-    @ExceptionHandler(AccountNotFoundException.class)
+public class TemplateAdvice {
+    @ExceptionHandler(TemplateNotFoundException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    String accountNotFoundHandler(AccountNotFoundException ex)
+    String templateNotFoundHandler(TemplateNotFoundException ex)
     {
         return ex.getMessage();
     }
 
-    @ExceptionHandler(IncorrectPasswordException.class)
+    @ExceptionHandler(UnauthorizedAccessException.class)
     @ResponseStatus(HttpStatus.UNAUTHORIZED)
-    String incorrectPasswordHandler(IncorrectPasswordException ex)
+    String unauthorizedRequest(UnauthorizedAccessException ex)
     {
         return ex.getMessage();
     }

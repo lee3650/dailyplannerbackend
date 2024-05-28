@@ -13,9 +13,12 @@ import java.util.Optional;
 @RestController
 public class AccountController {
     private final AccountRepository repository;
+    private LoginService loginService;
 
-    AccountController(AccountRepository repository) {
+    AccountController(AccountRepository repository, LoginService loginService)
+    {
         this.repository = repository;
+        this.loginService = loginService;
     }
 
     @PostMapping("/createAccount")
@@ -29,26 +32,8 @@ public class AccountController {
 
     @PostMapping("/login")
     Account login(@RequestBody Account login) {
-        System.out.println("got new user: " + login.toString());
-        login.setPasswordHash(new Hasher().hash(login.getPasswordHash()));
-
-        Optional<Account> account = repository.findByEmail(login.getEmail());
-
-        if (account.isPresent())
-        {
-            if (account.get().getPasswordHash().equals(login.getPasswordHash()))
-            {
-                // success
-                Account result = account.get();
-                result.setPasswordHash("");
-                return result;
-            }
-            // wrong password
-            throw new IncorrectPasswordException(login.getEmail());
-        }
-
-        // non-existent account
-        throw new AccountNotFoundException(login.getEmail());
+        System.out.println("logging in user: " + login.toString());
+        return loginService.tryLogin(login);
     }
 
     // this is just for testing
