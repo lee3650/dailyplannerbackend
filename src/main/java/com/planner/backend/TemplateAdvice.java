@@ -1,5 +1,6 @@
 package com.planner.backend;
 
+import com.sun.jdi.request.InvalidRequestStateException;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -17,6 +18,13 @@ public class TemplateAdvice {
     @ExceptionHandler(UnauthorizedAccessException.class)
     @ResponseStatus(HttpStatus.UNAUTHORIZED)
     String unauthorizedRequest(UnauthorizedAccessException ex)
+    {
+        return ex.getMessage();
+    }
+
+    @ExceptionHandler(InvalidRequestStateException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    String invalidRequestHandler(InvalidRequestStateException ex)
     {
         return ex.getMessage();
     }

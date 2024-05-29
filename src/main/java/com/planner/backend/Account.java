@@ -26,6 +26,14 @@ public class Account {
         this.passwordHash = passwordHash;
     }
 
+    public List<Template> getTemplates() {
+        return templates;
+    }
+
+    public void setTemplates(List<Template> templates) {
+        this.templates = templates;
+    }
+
     public Long getId() {
         return id;
     }
