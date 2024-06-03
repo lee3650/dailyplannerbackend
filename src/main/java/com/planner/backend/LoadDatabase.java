@@ -24,10 +24,11 @@ public class LoadDatabase {
                     new Hasher().hash("password"))));
             Template template = new Template();
             template.setOwner(first);
-            EventData event = new EventData(0, 60, template);
+            EventData event = new EventData(0, 60, "test event", template);
             ArrayList<EventData> events = new ArrayList<>();
             events.add(event);
             template.setEvents(events);
+            template.setName("test template");
             log.info("Preloading: " + templateRepository.save(template));
         };
     }

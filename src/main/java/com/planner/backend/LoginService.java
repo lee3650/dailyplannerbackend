@@ -23,7 +23,6 @@ public class LoginService {
             {
                 // success
                 Account result = account.get();
-                result.setPasswordHash("");
                 return result;
             }
 

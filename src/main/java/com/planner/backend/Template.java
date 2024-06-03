@@ -1,5 +1,7 @@
 package com.planner.backend;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 
 import java.util.List;
@@ -10,6 +12,22 @@ public class Template {
     @GeneratedValue
     Long id;
 
+    public Template()
+    {
+
+    }
+
+    public Template(String name)
+    {
+        this.name = name;
+    }
+
+    public Template(List<EventData> events, Account owner, String name) {
+        this.events = events;
+        this.owner = owner;
+        this.name = name;
+    }
+
     public List<EventData> getEvents() {
         return events;
     }
@@ -19,9 +37,11 @@ public class Template {
     }
 
     @OneToMany(mappedBy = "template", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
     private List<EventData> events;
 
     @ManyToOne
+    @JsonBackReference
     @JoinColumn(name = "account_id", nullable = false)
     private Account owner;
 

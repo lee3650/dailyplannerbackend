@@ -47,9 +47,39 @@ public class TemplateController {
         return login.getTemplates();
     }
 
-    public class WriteTemplateRequest {
+    @PostMapping("/writeTemplates")
+    public void writeTemplates(@RequestBody WriteTemplatesRequest request)
+    {
+        Account login = loginService.tryLogin(request.account);
+
+        for (Template t : request.templates)
+        {
+            t.setOwner(login);
+        }
+
+        login.setTemplates(request.templates);
+        accountRepository.save(login);
+    }
+
+    public static class WriteTemplatesRequest {
+        public List<Template> templates;
+        public Account account;
+
+        public WriteTemplatesRequest() { }
+
+        public WriteTemplatesRequest(List<Template> templates) {
+            this.templates = templates;
+        }
+    }
+
+    public static class WriteTemplateRequest {
         private Template template;
         private Account account;
+
+        public WriteTemplateRequest()
+        {
+
+        }
 
         public Template getTemplate() {
             return template;
@@ -68,8 +98,8 @@ public class TemplateController {
         }
     }
 
-    @PostMapping("/writeTemplate/{id}")
-    public Template writeTemplate(@PathVariable long id, @RequestBody WriteTemplateRequest request) {
+    @PostMapping("/writeTemplate")
+    public Template writeTemplate(@RequestBody WriteTemplateRequest request) {
         if (request.account == null || request.template == null)
         {
             throw new InvalidRequestStateException("Invalid request state for template write!");
