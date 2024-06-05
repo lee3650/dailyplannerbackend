@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.swing.text.html.Option;
 import java.util.List;
 import java.util.Optional;
 
@@ -25,6 +26,11 @@ public class AccountController {
     Account newAccount(@RequestBody Account newUser) {
         System.out.println("got new user: " + newUser.toString());
         newUser.setPasswordHash(new Hasher().hash(newUser.getPasswordHash()));
+        Optional<Account> existing = repository.findByEmail(newUser.getEmail());
+        if (existing.isPresent())
+        {
+            throw new EmailInUseException(newUser.getEmail());
+        }
         Account output = repository.save(newUser);
         output.setPasswordHash("");
         return output;

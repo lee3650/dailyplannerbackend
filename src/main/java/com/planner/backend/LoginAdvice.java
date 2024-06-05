@@ -12,7 +12,13 @@ public class LoginAdvice {
     String accountNotFoundHandler(AccountNotFoundException ex)
     {
         return ex.getMessage();
+    }
 
+    @ExceptionHandler(EmailInUseException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    String emailInUseHandler(EmailInUseException ex)
+    {
+        return ex.getMessage();
     }
 
     @ExceptionHandler(IncorrectPasswordException.class)
