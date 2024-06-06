@@ -12,6 +12,28 @@ public class LoginService {
         this.repository = repository;
     }
 
+    public Account tryLogin(long userId, String password)
+    {
+        String hash = new Hasher().hash(password);
+
+        Optional<Account> account = repository.findById(userId);
+        if (account.isPresent())
+        {
+            if (account.get().getPasswordHash().equals(hash))
+            {
+                // success
+                Account result = account.get();
+                return result;
+            }
+
+            // wrong password
+            throw new IncorrectPasswordException("" + userId);
+        }
+
+        // non-existent account
+        throw new AccountNotFoundException("" + userId);
+    }
+
     public Account tryLogin(Account login) {
         login.setPasswordHash(new Hasher().hash(login.getPasswordHash()));
 

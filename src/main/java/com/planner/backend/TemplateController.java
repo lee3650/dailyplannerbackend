@@ -21,8 +21,8 @@ public class TemplateController {
     }
 
     @GetMapping("/readTemplate/{id}")
-    public Template readTemplate(@PathVariable long id, @RequestBody Account account) {
-        Account login = loginService.tryLogin(account);
+    public Template readTemplate(@PathVariable long id, @RequestHeader("userId") long userId, @RequestHeader("password") String password) {
+        Account login = loginService.tryLogin(userId, password);
         // well, that's it I guess... don't we have unique IDs for all templates?
         // eh, true.
 
