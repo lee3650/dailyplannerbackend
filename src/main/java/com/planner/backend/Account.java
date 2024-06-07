@@ -19,6 +19,8 @@ public class Account {
     @JsonManagedReference
     private List<Template> templates;
 
+    private Long todayTemplate;
+
     Account() {
 
     }
@@ -26,6 +28,14 @@ public class Account {
     Account(String username, String passwordHash) {
         this.email = username;
         this.passwordHash = passwordHash;
+    }
+
+    public Long getTodayTemplate() {
+        return todayTemplate;
+    }
+
+    public void setTodayTemplate(Long todayTemplate) {
+        this.todayTemplate = todayTemplate;
     }
 
     public List<Template> getTemplates() {
