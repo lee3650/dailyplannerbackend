@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.swing.text.html.Option;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -15,11 +16,13 @@ import java.util.Optional;
 public class AccountController {
     private final AccountRepository repository;
     private LoginService loginService;
+    private TemplateRepository templateRepository;
 
-    AccountController(AccountRepository repository, LoginService loginService)
+    AccountController(AccountRepository repository, LoginService loginService, TemplateRepository templateRepository)
     {
         this.repository = repository;
         this.loginService = loginService;
+        this.templateRepository = templateRepository;
     }
 
     @PostMapping("/createAccount")
@@ -31,9 +34,15 @@ public class AccountController {
         {
             throw new EmailInUseException(newUser.getEmail());
         }
+        Template todayTemplate = new Template();
+        todayTemplate.setName("today");
+        todayTemplate.setEvents(new ArrayList<>());
         Account output = repository.save(newUser);
+        todayTemplate.setOwner(output);
         output.setPasswordHash("");
-        return output;
+        Template savedToday = templateRepository.save(todayTemplate);
+        output.setTodayTemplate(savedToday.getId());
+        return repository.save(output);
     }
 
     @PostMapping("/login")

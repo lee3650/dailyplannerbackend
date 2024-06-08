@@ -12,6 +12,17 @@ public class LoginService {
         this.repository = repository;
     }
 
+    public Account tryLogin(String loginString)
+    {
+        // we'll use : as the separator
+        int splitPos = loginString.indexOf(':');
+        String idstr = loginString.substring(0, splitPos);
+        String password = loginString.substring(splitPos + 1);
+
+        Long id = Long.parseLong(idstr);
+        return tryLogin(id, password);
+    }
+
     public Account tryLogin(long userId, String password)
     {
         String hash = new Hasher().hash(password);

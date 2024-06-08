@@ -4,6 +4,7 @@ import com.sun.jdi.request.InvalidRequestStateException;
 import jakarta.persistence.PostPersist;
 import org.springframework.web.bind.annotation.*;
 
+import javax.annotation.RegEx;
 import javax.swing.text.html.Option;
 import java.util.ArrayList;
 import java.util.List;
@@ -23,8 +24,8 @@ public class TemplateController {
     }
 
     @GetMapping("/readTemplate/{id}")
-    public Template readTemplate(@PathVariable long id, @RequestHeader("userId") long userId, @RequestHeader("password") String password) {
-        Account login = loginService.tryLogin(userId, password);
+    public Template readTemplate(@PathVariable long id, @RequestHeader("auth") String authStr) {
+        Account login = loginService.tryLogin(authStr);
         // well, that's it I guess... don't we have unique IDs for all templates?
         // eh, true.
 
@@ -46,7 +47,7 @@ public class TemplateController {
                 else
                 {
                     // that's not good lol
-                    throw new RuntimeException("Somehow the today template didn't exist for user " + userId);
+                    throw new RuntimeException("Somehow the today template didn't exist for user " + login.getId());
                 }
             }
         }
@@ -66,10 +67,53 @@ public class TemplateController {
     }
 
     @GetMapping("/readTemplates")
-    public List<Template> readTemplates(@RequestHeader("userId") long userId, @RequestHeader("password") String password)
+    public List<Template> readTemplates(@RequestHeader("auth") String authStr)
     {
-        Account login = loginService.tryLogin(userId, password);
+        Account login = loginService.tryLogin(authStr);
         return login.getTemplates();
+    }
+
+    public static class AddTemplateRequest
+    {
+        public String name;
+
+        public AddTemplateRequest()
+        {
+
+        }
+    }
+
+    @PostMapping("/addTemplate")
+    public Template addTemplate(@RequestHeader("auth") String authStr, @RequestBody AddTemplateRequest request)
+    {
+        Account login = loginService.tryLogin(authStr);
+
+        Template added = new Template();
+        added.setOwner(login);
+        added.setName(request.name);
+        added.setEvents(new ArrayList<>());
+
+        return templateRepository.save(added);
+    }
+
+    @DeleteMapping("/deleteTemplate/{id}")
+    public List<Template> deleteTemplate(@RequestHeader("auth") String authStr, @PathVariable long id)
+    {
+        Account login = loginService.tryLogin(authStr);
+
+        for (int i = 0; i < login.getTemplates().size(); i++)
+        {
+            if (login.getTemplates().get(i).getId() == id)
+            {
+                // remove this one
+                login.getTemplates().remove(i);
+                break;
+            }
+        }
+
+        templateRepository.deleteById(id);
+        Account saved = accountRepository.save(login);
+        return saved.getTemplates();
     }
 
     @PostMapping("/writeTemplates")
@@ -98,8 +142,8 @@ public class TemplateController {
     }
 
     @PostMapping("/writeTemplate")
-    public Template writeTemplate(@RequestBody Template request, @RequestHeader("userId") long userId, @RequestHeader("password") String password) {
-        Account login = loginService.tryLogin(userId, password);
+    public Template writeTemplate(@RequestBody Template request, @RequestHeader("auth") String authStr) {
+        Account login = loginService.tryLogin(authStr);
 
         request.setOwner(login);
 
