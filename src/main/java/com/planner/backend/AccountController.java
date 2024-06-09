@@ -42,13 +42,27 @@ public class AccountController {
         output.setPasswordHash("");
         Template savedToday = templateRepository.save(todayTemplate);
         output.setTodayTemplate(savedToday.getId());
-        return repository.save(output);
+        Account savedAccount = repository.save(output);
+        return new TemplatesCleaner().CleanTemplateAccount(savedAccount);
     }
 
     @PostMapping("/login")
     Account login(@RequestBody Account login) {
         System.out.println("logging in user: " + login.toString());
-        return loginService.tryLogin(login);
+        Account loggedIn = loginService.tryLogin(login);
+
+        if (loggedIn.getTodayTemplate() == null)
+        {
+            Template today = new Template();
+            today.setName("today");
+            today.setEvents(new ArrayList<>());
+            today.setOwner(loggedIn);
+            Template saved = templateRepository.save(today);
+            loggedIn.setTodayTemplate(saved.getId());
+            loggedIn = repository.save(loggedIn);
+        }
+
+        return new TemplatesCleaner().CleanTemplateAccount(loggedIn);
     }
 
     // this is just for testing

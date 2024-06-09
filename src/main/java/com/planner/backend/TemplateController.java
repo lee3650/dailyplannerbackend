@@ -31,24 +31,15 @@ public class TemplateController {
 
         if (id == -1)
         {
-            // fetch the today template
-            if (login.getTodayTemplate() == null)
+            Optional<Template> optionalToday = templateRepository.findById(login.getTodayTemplate());
+            if (optionalToday.isPresent())
             {
-                // return a blank template
-                return new Template(new ArrayList<EventData>(), login, "today");
+                return optionalToday.get();
             }
             else
             {
-                Optional<Template> optionalToday = templateRepository.findById(login.getTodayTemplate());
-                if (optionalToday.isPresent())
-                {
-                    return optionalToday.get();
-                }
-                else
-                {
-                    // that's not good lol
-                    throw new RuntimeException("Somehow the today template didn't exist for user " + login.getId());
-                }
+                // that's not good lol
+                throw new RuntimeException("Somehow the today template didn't exist for user " + login.getId());
             }
         }
 
@@ -70,7 +61,7 @@ public class TemplateController {
     public List<Template> readTemplates(@RequestHeader("auth") String authStr)
     {
         Account login = loginService.tryLogin(authStr);
-        return login.getTemplates();
+        return new TemplatesCleaner().CleanTemplates(login);
     }
 
     public static class AddTemplateRequest
@@ -81,6 +72,37 @@ public class TemplateController {
         {
 
         }
+    }
+
+    @PostMapping("/loadIntoToday/{id}")
+    public Template loadIntoToday(@RequestHeader("auth") String authStr, @PathVariable long templateId)
+    {
+        Account login = loginService.tryLogin(authStr);
+
+        Optional<Template> optToday = templateRepository.findById(login.getTodayTemplate());
+
+        if (optToday.isEmpty())
+        {
+            throw new TemplateNotFoundException(login.getTodayTemplate());
+        }
+
+        Optional<Template> optionalTemplate = templateRepository.findById(templateId);
+        if (optionalTemplate.isEmpty())
+        {
+            throw new TemplateNotFoundException(templateId);
+        }
+
+        Template today = optToday.get();
+        Template clone = optionalTemplate.get();
+
+        today.setEvents(new ArrayList<>());
+
+        for (EventData d : clone.getEvents())
+        {
+            today.getEvents().add(d.clone(today));
+        }
+
+        return templateRepository.save(today);
     }
 
     @PostMapping("/addTemplate")
@@ -101,6 +123,11 @@ public class TemplateController {
     {
         Account login = loginService.tryLogin(authStr);
 
+        if (login.getTodayTemplate().equals(id))
+        {
+            throw new RuntimeException("Bad request: Can't delete the 'today' template!");
+        }
+
         for (int i = 0; i < login.getTemplates().size(); i++)
         {
             if (login.getTemplates().get(i).getId() == id)
@@ -113,7 +140,7 @@ public class TemplateController {
 
         templateRepository.deleteById(id);
         Account saved = accountRepository.save(login);
-        return saved.getTemplates();
+        return new TemplatesCleaner().CleanTemplates(saved);
     }
 
     @PostMapping("/writeTemplates")
@@ -125,6 +152,14 @@ public class TemplateController {
         {
             t.setOwner(login);
         }
+
+        Optional<Template> optToday = templateRepository.findById(login.getTodayTemplate());
+        if (optToday.isEmpty())
+        {
+            throw new TemplateNotFoundException(login.getTodayTemplate());
+        }
+
+        request.templates.add(optToday.get());
 
         login.setTemplates(request.templates);
         accountRepository.save(login);
@@ -162,21 +197,8 @@ public class TemplateController {
         // write to the today template
         if (request.getId() == -1)
         {
-            // first time asking for it
-            if (login.getTodayTemplate() == null)
-            {
-                // set request id to null and save it and return that
-                request.setId(null);
-                Template today = templateRepository.save(request);
-                login.setTodayTemplate(today.getId());
-                accountRepository.save(login);
-                return today;
-            }
-            else
-            {
-                request.setId(login.getTodayTemplate());
-                return templateRepository.save(request);
-            }
+            request.setId(login.getTodayTemplate());
+            return templateRepository.save(request);
         }
 
         // existing. Just return.

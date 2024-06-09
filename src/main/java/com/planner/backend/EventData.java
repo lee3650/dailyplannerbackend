@@ -9,6 +9,11 @@ public class EventData {
     @Id
     Long id;
 
+    public EventData clone(Template newParent)
+    {
+        return new EventData(startTime, endTime, name, newParent);
+    }
+
     private int startTime;
     private int endTime;
     private String name;
