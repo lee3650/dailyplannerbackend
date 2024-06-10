@@ -1,9 +1,6 @@
 package com.planner.backend;
 
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.swing.text.html.Option;
 import java.util.Optional;
@@ -35,17 +32,8 @@ public class EventDataController {
     @PostMapping("/addEvent")
     public Template addEvent(@RequestHeader("auth") String authStr, @RequestBody EventDataRequest request)
     {
-        // TODO - handle the "today" template
-
         Account login = loginService.tryLogin(authStr);
-
-        Optional<Template> optionalTemplate = templateRepository.findById(request.templateId);
-        if (optionalTemplate.isEmpty())
-        {
-            throw new TemplateNotFoundException(request.templateId);
-        }
-
-        Template template = optionalTemplate.get();
+        Template template = TemplateLoader.loadTemplate(templateRepository, login, request.templateId);
         request.eventData.setTemplate(template);
         EventData saved = eventDataRepository.save(request.eventData);
         template.getEvents().add(saved);
@@ -53,18 +41,38 @@ public class EventDataController {
         return savedTemplate;
     }
 
+    @DeleteMapping("/deleteEvent/{id}")
+    public Template deleteEvent(@PathVariable long id, @RequestHeader("auth") String authStr)
+    {
+        Account login = loginService.tryLogin(authStr);
+
+        Optional<EventData> optionalData = eventDataRepository.findById(id);
+        if (optionalData.isEmpty())
+        {
+            throw new RuntimeException("Couldn't find event data with id " + id);
+        }
+
+        EventData data = optionalData.get();
+        Template template = TemplateLoader.loadTemplate(templateRepository, login, data.getTemplate().getId());
+
+        for (int i = 0; i < template.getEvents().size(); i++)
+        {
+            if (template.getEvents().get(i).getId().equals(id))
+            {
+                template.getEvents().remove(i);
+                break;
+            }
+        }
+
+        return templateRepository.save(template);
+    }
+
     @PostMapping("/updateEvent")
     public Template updateEvent(@RequestHeader("auth") String authStr, @RequestBody EventDataRequest request)
     {
         Account login = loginService.tryLogin(authStr);
 
-        Optional<Template> optionalTemplate = templateRepository.findById(request.templateId);
-        if (optionalTemplate.isEmpty())
-        {
-            throw new TemplateNotFoundException(request.templateId);
-        }
-
-        Template template = optionalTemplate.get();
+        Template template = TemplateLoader.loadTemplate(templateRepository, login, request.templateId);
         Optional<EventData> optionalEventData = eventDataRepository.findById(request.eventData.id);
         if (optionalEventData.isEmpty())
         {

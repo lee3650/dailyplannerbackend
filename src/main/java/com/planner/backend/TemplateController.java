@@ -29,32 +29,7 @@ public class TemplateController {
         // well, that's it I guess... don't we have unique IDs for all templates?
         // eh, true.
 
-        if (id == -1)
-        {
-            Optional<Template> optionalToday = templateRepository.findById(login.getTodayTemplate());
-            if (optionalToday.isPresent())
-            {
-                return optionalToday.get();
-            }
-            else
-            {
-                // that's not good lol
-                throw new RuntimeException("Somehow the today template didn't exist for user " + login.getId());
-            }
-        }
-
-        Optional<Template> possibleResult = templateRepository.findById(id);
-        if (possibleResult.isPresent())
-        {
-            Template result = possibleResult.get();
-            if (result.getOwner().getId().equals(login.getId()))
-            {
-                return result;
-            }
-            throw new UnauthorizedAccessException("template of id " + result.getId());
-        }
-
-        throw new TemplateNotFoundException(id);
+        return TemplateLoader.loadTemplate(templateRepository, login, id);
     }
 
     @GetMapping("/readTemplates")
@@ -75,7 +50,7 @@ public class TemplateController {
     }
 
     @PostMapping("/loadIntoToday/{id}")
-    public Template loadIntoToday(@RequestHeader("auth") String authStr, @PathVariable long templateId)
+    public Template loadIntoToday(@RequestHeader("auth") String authStr, @PathVariable long id)
     {
         Account login = loginService.tryLogin(authStr);
 
@@ -86,16 +61,22 @@ public class TemplateController {
             throw new TemplateNotFoundException(login.getTodayTemplate());
         }
 
-        Optional<Template> optionalTemplate = templateRepository.findById(templateId);
+        if (id == login.getTodayTemplate())
+        {
+            return optToday.get();
+        }
+
+        Optional<Template> optionalTemplate = templateRepository.findById(id);
         if (optionalTemplate.isEmpty())
         {
-            throw new TemplateNotFoundException(templateId);
+            throw new TemplateNotFoundException(id);
         }
 
         Template today = optToday.get();
         Template clone = optionalTemplate.get();
 
-        today.setEvents(new ArrayList<>());
+        today.getEvents().clear();
+        templateRepository.save(today);
 
         for (EventData d : clone.getEvents())
         {
@@ -176,43 +157,11 @@ public class TemplateController {
         }
     }
 
-    @PostMapping("/writeTemplate")
-    public Template writeTemplate(@RequestBody Template request, @RequestHeader("auth") String authStr) {
+    @PostMapping("/renameTemplate/{id}")
+    public Template writeTemplate(@PathVariable long id, @RequestBody String newName, @RequestHeader("auth") String authStr) {
         Account login = loginService.tryLogin(authStr);
-
-        request.setOwner(login);
-
-        // so, I guess if this template already exists, we update it, otherwise we um, will create it...
-        // it's new if the request.templateId is null.
-
-        if (request.getId() == null)
-        {
-            // new. Just add and create
-            login.getTemplates().add(request);
-            Template added = templateRepository.save(request);
-            accountRepository.save(login);
-            return added;
-        }
-
-        // write to the today template
-        if (request.getId() == -1)
-        {
-            request.setId(login.getTodayTemplate());
-            return templateRepository.save(request);
-        }
-
-        // existing. Just return.
-        for (int i = 0; i < login.getTemplates().size(); i++)
-        {
-            if (login.getTemplates().get(i).getId().equals(request.getId()))
-            {
-                login.getTemplates().set(i, request);
-                break;
-            }
-        }
-
-        Template result = templateRepository.save(request);
-        accountRepository.save(login);
-        return result;
+        Template loaded = TemplateLoader.loadTemplate(templateRepository, login, id);
+        loaded.setName(newName);
+        return templateRepository.save(loaded);
     }
 }
