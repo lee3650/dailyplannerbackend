@@ -157,11 +157,34 @@ public class TemplateController {
         }
     }
 
-    @PostMapping("/renameTemplate/{id}")
-    public Template writeTemplate(@PathVariable long id, @RequestBody String newName, @RequestHeader("auth") String authStr) {
+    @PostMapping("/duplicateTemplate/{id}")
+    public List<Template> duplicateTemplate(@PathVariable long id, @RequestHeader("auth") String authStr)
+    {
         Account login = loginService.tryLogin(authStr);
         Template loaded = TemplateLoader.loadTemplate(templateRepository, login, id);
-        loaded.setName(newName);
+        // so, just duplicate the template (and all the events)
+        // save it, add it to the list, save the list, and return the new list
+        // lol
+        List<EventData> next = new ArrayList<>();
+        Template duplicate = new Template(next, login, loaded.getName() + " (copy)");
+
+        for (EventData d : loaded.getEvents())
+        {
+            next.add(d.clone(duplicate));
+        }
+
+        Template saved = templateRepository.save(duplicate);
+        Account savedAccount = accountRepository.save(login);
+        return new TemplatesCleaner().CleanTemplates(savedAccount);
+    }
+
+    public record RenameRequest(String newName) { }
+
+    @PostMapping("/renameTemplate/{id}")
+    public Template writeTemplate(@PathVariable long id, @RequestBody RenameRequest renameRequest, @RequestHeader("auth") String authStr) {
+        Account login = loginService.tryLogin(authStr);
+        Template loaded = TemplateLoader.loadTemplate(templateRepository, login, id);
+        loaded.setName(renameRequest.newName());
         return templateRepository.save(loaded);
     }
 }
