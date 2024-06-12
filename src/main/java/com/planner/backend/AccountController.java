@@ -37,9 +37,9 @@ public class AccountController {
         Template todayTemplate = new Template();
         todayTemplate.setName("today");
         todayTemplate.setEvents(new ArrayList<>());
+        newUser.setTemplates(new ArrayList<>());
         Account output = repository.save(newUser);
         todayTemplate.setOwner(output);
-        output.setPasswordHash("");
         Template savedToday = templateRepository.save(todayTemplate);
         output.setTodayTemplate(savedToday.getId());
         Account savedAccount = repository.save(output);
