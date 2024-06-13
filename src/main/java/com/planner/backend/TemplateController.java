@@ -2,6 +2,7 @@ package com.planner.backend;
 
 import com.sun.jdi.request.InvalidRequestStateException;
 import jakarta.persistence.PostPersist;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.RegEx;
@@ -99,6 +100,7 @@ public class TemplateController {
         return templateRepository.save(added);
     }
 
+    @Transactional
     @DeleteMapping("/deleteTemplate/{id}")
     public List<Template> deleteTemplate(@RequestHeader("auth") String authStr, @PathVariable long id)
     {

@@ -25,6 +25,13 @@ public class AccountController {
         this.templateRepository = templateRepository;
     }
 
+    void clearDatabase()
+    {
+        // for testing
+        templateRepository.deleteAll();
+        repository.deleteAll();
+    }
+
     @PostMapping("/createAccount")
     Account newAccount(@RequestBody Account newUser) {
         System.out.println("got new user: " + newUser.toString());
