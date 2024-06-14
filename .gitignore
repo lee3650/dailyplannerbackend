@@ -6,6 +6,8 @@ build/
 !**/src/test/**/build/
 
 application-local.properties
+server.key
+myCA.key
 
 ### STS ###
 .apt_generated

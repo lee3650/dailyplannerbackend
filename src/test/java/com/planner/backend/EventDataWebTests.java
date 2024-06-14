@@ -7,10 +7,12 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
+import org.springframework.test.context.ActiveProfiles;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@ActiveProfiles("test")
 public class EventDataWebTests {
     @Autowired
     TestRestTemplate template;
@@ -18,11 +20,14 @@ public class EventDataWebTests {
     @Autowired
     AccountController controller;
 
+    @Autowired
+    EventDataController eventDataController;
+
     @AfterEach
     void cleanup()
     {
         controller.clearDatabase();
-        // TODO - cleanup the event data repository
+        eventDataController.clearDatabase();
     }
 
     @Test

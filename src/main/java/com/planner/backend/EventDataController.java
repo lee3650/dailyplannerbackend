@@ -18,6 +18,11 @@ public class EventDataController {
         this.templateRepository = templateRepository;
     }
 
+    public void clearDatabase()
+    {
+        eventDataRepository.deleteAll();
+    }
+
     public static class EventDataRequest
     {
         public EventData eventData;
