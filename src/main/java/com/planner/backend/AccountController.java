@@ -77,4 +77,9 @@ public class AccountController {
     List<Account> getAccounts() {
         return repository.findAll();
     }
+
+    @GetMapping("/health")
+    String health() {
+	return "server is running!"; 
+    }
 }

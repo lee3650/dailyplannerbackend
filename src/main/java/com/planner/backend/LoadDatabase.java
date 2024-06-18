@@ -14,6 +14,7 @@ import java.util.ArrayList;
 public class LoadDatabase {
     private static final Logger log = LoggerFactory.getLogger(LoadDatabase.class);
 
+    /*
     @Bean
     CommandLineRunner initDatabase(AccountRepository repository, TemplateRepository templateRepository) {
         return args -> {
@@ -32,4 +33,5 @@ public class LoadDatabase {
             log.info("Preloading: " + templateRepository.save(template));
         };
     }
+    */
 }
